@@ -34,12 +34,13 @@ public class App {
 
     /*you want to use an arraylist. These are alway good to use because you can modify it.
      * Here we will add and remove values.*/
-    static List<Item> values = new ArrayList<>();
+    //static List<Item> values = new ArrayList<>();
 
-
+    /*
     public List<Item> getValues() {
         return this.values;
     }
+    */
     /*This is your main method. */
     /**
      * Launch the application.
@@ -194,7 +195,7 @@ public class App {
                         try {
                             String nameOfFile = userTextField.getText();
                             //System.out.println("Filename is " + nameOfFile);
-                            saveAsFormattedFile(nameOfFile, filePath, "tsv");
+                            FileUtil.saveAsFormattedFile(nameOfFile, filePath, "tsv");
                         } catch (IOException ioException) {
                             ioException.printStackTrace();
                         }
@@ -243,7 +244,7 @@ public class App {
                         try {
                             String nameOfFile = userTextField.getText();
                             //System.out.println("Filename is " + nameOfFile);
-                            saveAsHTMLFile(nameOfFile, filePath);
+                            FileUtil.saveAsHTMLFile(nameOfFile, filePath);
                         } catch (IOException ioException) {
                             ioException.printStackTrace();
                         }
@@ -325,7 +326,8 @@ public class App {
             @Override
             public void mouseClicked(MouseEvent e) {
                 //call to edit item
-                sortByValue();
+                ItemUtil.sortByValue();
+                show();
             }
         });
         btnNewButton_sortValue.setBounds(425, 285, 145, 23);
@@ -337,7 +339,8 @@ public class App {
             @Override
             public void mouseClicked(MouseEvent e) {
                 //call to edit item
-                sortBySerialNumber();
+                ItemUtil.sortBySerialNumber();
+                show();
             }
         });
         btnNewButton_sortSerialNumber.setBounds(425, 319, 145, 23);
@@ -349,7 +352,8 @@ public class App {
             @Override
             public void mouseClicked(MouseEvent e) {
                 //call to edit item
-                sortByName();
+                ItemUtil.sortByName();
+                show();
             }
         });
         btnNewButton_sortByName.setBounds(425, 353, 145, 23);
@@ -361,7 +365,9 @@ public class App {
             @Override
             public void mouseClicked(MouseEvent e) {
                 //call to edit item
-                searchBySerialNumber();
+                String serialNumber = textField_1.getText();
+                List<Item> records = ItemUtil.searchBySerialNumber(serialNumber);
+                showRecords(records);
             }
         });
         btnNewButton_searchBySerialNumber.setBounds(425, 387, 145, 23);
@@ -382,80 +388,10 @@ public class App {
 
     public static void searchByName() {
         String name = textField_2.getText(); //for the second box
-        //Item record = findRecord(serialNumber);
 
         List<Item> records = new ArrayList<>();
-        records = findRecordByName(name);
+        records = ItemUtil.findRecordByName(name);
         showRecords(records);
-    }
-
-    public static List<Item> findRecordByName(String name) {
-        List<Item> records = new ArrayList<>();
-        for(Item item: values) {
-            if(item.getName().equals(name)) {
-                records.add(item);
-            }
-        }
-
-        return records;
-    }
-
-    public static void searchBySerialNumber() {
-        String serialNumber = textField_1.getText(); //for the second box
-        //Item record = findRecord(serialNumber);
-
-        List<Item> records = new ArrayList<>();
-        records.add(findRecord(serialNumber));
-        showRecords(records);
-    }
-
-    public static void sortByValue() {
-        Collections.sort(values, new Comparator<Item>() {
-            @Override
-            public int compare(Item item1, Item item2) {
-                return item1.getValue().compareTo(item2.getValue());
-            }
-        });
-        show();
-    }
-
-    public static void sortBySerialNumber() {
-        Collections.sort(values, new Comparator<Item>() {
-            @Override
-            public int compare(Item item1, Item item2) {
-                return item1.getSerialNumber().compareTo(item2.getSerialNumber());
-            }
-        });
-        show();
-    }
-
-    public static void sortByName() {
-        Collections.sort(values, new Comparator<Item>() {
-            @Override
-            public int compare(Item item1, Item item2) {
-                return item1.getName().compareTo(item2.getName());
-            }
-        });
-        show();
-    }
-
-    public static Item findRecord(String serialNumber) {
-        for(Item value: values) {
-            if(serialNumber.equals(value.getSerialNumber())) {
-                return value;
-            }
-        }
-
-        return null;
-    }
-
-    public static void deleteRecord(String serialNumber) {
-        for(int i = 0; i<values.size(); i++) {
-            Item value = values.get(i);
-            if(serialNumber.equals(value.getSerialNumber())) {
-                values.remove(i);
-            }
-        }
     }
 
     //The edit method
@@ -467,10 +403,10 @@ public class App {
         //we will create one big string, we will tweak this one so don't worry
         Item item = new Item(value, serialNumber, name);
 
-        Item olderRecord = findRecord(item.getSerialNumber());
+        Item olderRecord = ItemUtil.findRecord(item.getSerialNumber());
         if(olderRecord!=null) {
-            deleteRecord(olderRecord.getSerialNumber()); //serial number passed to function
-            values.add(0, item);
+            ItemUtil.deleteRecord(olderRecord.getSerialNumber()); //serial number passed to function
+            ItemUtil.values.add(0, item);
             System.out.println("Row can be added. Unique row");
         }
         else {
@@ -480,7 +416,7 @@ public class App {
         show();
         try {
             //we will want to save values to regular text file either way
-            save();
+            FileUtil.save();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -507,7 +443,7 @@ public class App {
         textArea.setText("");
 
         //read values in arraylist and put them in textArea
-        for(Item value : values) {
+        for(Item value : ItemUtil.values) {
             textArea.append(value + "\n");
         }
 
@@ -515,12 +451,18 @@ public class App {
         textArea.setCaretPosition(0);
     }
 
-    public static boolean testSerialNumberPresence(String serialNumber) {
-        for(Item value: values) {
-            if(value.getSerialNumber().equals(serialNumber))
-                return true;
+    public static void delete() {
+
+        //this removes the first value of the arraylist
+        ItemUtil.values.remove(0);
+        //then we call show to add the values again to the text area.
+        show();
+        try {
+            FileUtil.save();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
-        return false;
     }
 
     public static void add() {
@@ -532,11 +474,11 @@ public class App {
         //we will create one big string, we will tweak this one so don't worry
         //String d = a + b + c;
         //System.out.println(" " + d); //testing string
-        boolean alreadyExists = testSerialNumberPresence(item.getSerialNumber());
+        boolean alreadyExists = ItemUtil.testSerialNumberPresence(item.getSerialNumber());
         //adding values to the arraylist
         if(!alreadyExists) {
             System.out.println("Row can be added. Unique row");
-            values.add(0, item);
+           ItemUtil. values.add(0, item);
         }
         else {
             System.out.println("Serial number already exists");
@@ -545,7 +487,7 @@ public class App {
         show();
         try {
             //we will want to save values to regular text file either way
-            save();
+            FileUtil.save();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -557,95 +499,4 @@ public class App {
         textField_2.setText("");
     }
 
-    public static void delete() {
-
-        //this removes the first value of the arraylist
-        values.remove(0);
-        //then we call show to add the values again to the text area.
-        show();
-        try {
-            save();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-    public static void save() throws IOException {
-
-        //Here we are saving to a regular text file. This is alway important because you may loose data
-        //if you don't do this step.
-        File file = new File("data/values.txt");
-        FileWriter writer = new FileWriter(file);
-        file.createNewFile();
-
-        //Reading values from arraylist values and writing to file.
-        for (Item value : values) {
-            writer.write(value + "\t" + "\n");
-        }
-        writer.flush();
-        writer.close();
-
-    }
-
-    public static void saveAsFormattedFile(String nameOfFile, File filePath, String format) throws IOException {
-
-        System.out.println(nameOfFile + " " + filePath);
-        //I'm still working on this.
-        File file = new File(filePath + "/" + nameOfFile + "." + format);
-
-        System.out.println(file);
-        FileWriter writer = new FileWriter(file);
-
-        //Reading values from arraylist values and writing to file.
-        for (Item value : values) {
-            System.out.println("Start writing to file");
-            writer.write(value + "\n");
-        }
-        writer.flush();
-        writer.close();
-    }
-
-    public static void saveAsHTMLFile(String nameOfFile, File filePath) throws IOException {
-
-        //I'm still working on this.
-        File file = new File(filePath + "/" + nameOfFile + ".html");
-        FileWriter writer = new FileWriter(file);
-
-        writer.write("<html><body><h1>Value, Serial Number, Name</h1>");
-        //Reading values from arraylist values and writing to file.
-        for (Item value : values) {
-            writer.write("<h2>" + value.getValue() + "\t" + value.getSerialNumber() + "\t" + value.getName() + "</h2>" + "<br>");
-        }
-
-        writer.write("</body></html>");
-        writer.flush();
-        writer.close();
-
-    }
-
-
-/*
-    public static void readFromFileFirst() {
-
-        //Here if you have values already stored in the file
-        //and you close the software and reopen it. You want to
-        //reload so that you have a starting point. Not necessary but leave in here.
-        File file = new File("data/values.txt");
-
-        try (BufferedReader br = new BufferedReader(new FileReader(file)))
-        {
-            String line;
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
-                values.add(line);
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
- */
 }
