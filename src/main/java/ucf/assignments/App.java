@@ -4,6 +4,8 @@ package ucf.assignments;
  *  Copyright 2021 first_name last_name
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.awt.EventQueue;
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,6 +37,9 @@ public class App {
     static List<Item> values = new ArrayList<>();
 
 
+    public List<Item> getValues() {
+        return this.values;
+    }
     /*This is your main method. */
     /**
      * Launch the application.
@@ -189,7 +194,7 @@ public class App {
                         try {
                             String nameOfFile = userTextField.getText();
                             //System.out.println("Filename is " + nameOfFile);
-                            saveAsTSVFile(nameOfFile, filePath);
+                            saveAsFormattedFile(nameOfFile, filePath, "tsv");
                         } catch (IOException ioException) {
                             ioException.printStackTrace();
                         }
@@ -209,17 +214,98 @@ public class App {
         btnNewButton_4.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                //call to export as HTML file
-                try {
-                    saveAsHTMLFile();
-                } catch (IOException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
+                //call to export as tsv file
+
+                newFrame.setVisible(true);
+                newFrame.setBounds(100, 100, 625, 300);
+                newFrame.getContentPane().setLayout(null);
+
+                JLabel lblNewLabel = new JLabel("File name");
+                lblNewLabel.setBounds(28, 23, 79, 14);
+                newFrame.getContentPane().add(lblNewLabel);
+
+                newFrame.getContentPane().add(userTextField);
+
+                System.out.println(userTextField);
+
+                JFileChooser f = new JFileChooser();
+                f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                f.showSaveDialog(null);
+
+                File filePath = f.getSelectedFile();
+
+
+                //add button to dialog box
+                JButton btnNewButton_export = new JButton("Export");
+                btnNewButton_export.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        try {
+                            String nameOfFile = userTextField.getText();
+                            //System.out.println("Filename is " + nameOfFile);
+                            saveAsHTMLFile(nameOfFile, filePath);
+                        } catch (IOException ioException) {
+                            ioException.printStackTrace();
+                        }
+                        newFrame.dispose();
+                        show();
+                    }
+                });
+                btnNewButton_export.setBounds(178, 48, 96, 14);
+                newFrame.getContentPane().add(btnNewButton_export);
             }
         });
         btnNewButton_4.setBounds(425, 183, 145, 23);
         frame.getContentPane().add(btnNewButton_4);
+
+        //Save as json button
+        JButton btnNewButton_json = new JButton("Export As JSON");
+        btnNewButton_json.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                //call to export as tsv file
+
+                newFrame.setVisible(true);
+                newFrame.setBounds(100, 100, 625, 300);
+                newFrame.getContentPane().setLayout(null);
+
+                JLabel lblNewLabel = new JLabel("File name");
+                lblNewLabel.setBounds(28, 23, 79, 14);
+                newFrame.getContentPane().add(lblNewLabel);
+
+                newFrame.getContentPane().add(userTextField);
+
+                System.out.println(userTextField);
+
+                JFileChooser f = new JFileChooser();
+                f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                f.showSaveDialog(null);
+
+                File filePath = f.getSelectedFile();
+
+                //add button to dialog box
+                JButton btnNewButton_export = new JButton("Export");
+                btnNewButton_export.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        try {
+                            String nameOfFile = userTextField.getText();
+                            //System.out.println("Filename is " + nameOfFile);
+                            FileUtil.saveAsJsonFile(nameOfFile, filePath);
+                        } catch (IOException ioException) {
+                            ioException.printStackTrace();
+                        }
+                        newFrame.dispose();
+                        show();
+                    }
+                });
+                btnNewButton_export.setBounds(178, 48, 96, 14);
+                newFrame.getContentPane().add(btnNewButton_export);
+            }
+        });
+        btnNewButton_json.setBounds(425, 217, 145, 23);
+        frame.getContentPane().add(btnNewButton_json);
+
 
         //Edit button
         JButton btnNewButton_edit = new JButton("Edit");
@@ -230,7 +316,7 @@ public class App {
                 edit();
             }
         });
-        btnNewButton_edit.setBounds(425, 217, 145, 23);
+        btnNewButton_edit.setBounds(425, 251, 145, 23);
         frame.getContentPane().add(btnNewButton_edit);
 
         //Sort by value button
@@ -242,7 +328,7 @@ public class App {
                 sortByValue();
             }
         });
-        btnNewButton_sortValue.setBounds(425, 251, 145, 23);
+        btnNewButton_sortValue.setBounds(425, 285, 145, 23);
         frame.getContentPane().add(btnNewButton_sortValue);
 
         //Sort by serial number button
@@ -254,7 +340,7 @@ public class App {
                 sortBySerialNumber();
             }
         });
-        btnNewButton_sortSerialNumber.setBounds(425, 285, 145, 23);
+        btnNewButton_sortSerialNumber.setBounds(425, 319, 145, 23);
         frame.getContentPane().add(btnNewButton_sortSerialNumber);
 
         //Sort by name
@@ -266,7 +352,7 @@ public class App {
                 sortByName();
             }
         });
-        btnNewButton_sortByName.setBounds(425, 319, 145, 23);
+        btnNewButton_sortByName.setBounds(425, 353, 145, 23);
         frame.getContentPane().add(btnNewButton_sortByName);
 
         //Search by serial number
@@ -278,7 +364,7 @@ public class App {
                 searchBySerialNumber();
             }
         });
-        btnNewButton_searchBySerialNumber.setBounds(425, 353, 145, 23);
+        btnNewButton_searchBySerialNumber.setBounds(425, 387, 145, 23);
         frame.getContentPane().add(btnNewButton_searchBySerialNumber);
 
         //Search by serial number
@@ -290,7 +376,7 @@ public class App {
                 searchByName();
             }
         });
-        btnNewButton_searchByName.setBounds(425, 387, 145, 23);
+        btnNewButton_searchByName.setBounds(425, 421, 145, 23);
         frame.getContentPane().add(btnNewButton_searchByName);
     }
 
@@ -502,36 +588,34 @@ public class App {
 
     }
 
-    public static void saveAsTSVFile(String nameOfFile, File filePath) throws IOException {
+    public static void saveAsFormattedFile(String nameOfFile, File filePath, String format) throws IOException {
 
         System.out.println(nameOfFile + " " + filePath);
         //I'm still working on this.
-        File file = new File(filePath + "/" + nameOfFile + ".tsv");
+        File file = new File(filePath + "/" + nameOfFile + "." + format);
 
         System.out.println(file);
-        //File file = new File("data/values.tsv");
         FileWriter writer = new FileWriter(file);
-        //file.createNewFile();
 
         //Reading values from arraylist values and writing to file.
         for (Item value : values) {
+            System.out.println("Start writing to file");
             writer.write(value + "\n");
         }
         writer.flush();
         writer.close();
     }
 
-    public static void saveAsHTMLFile() throws IOException {
+    public static void saveAsHTMLFile(String nameOfFile, File filePath) throws IOException {
 
         //I'm still working on this.
-        File file = new File("data/values.htm");
+        File file = new File(filePath + "/" + nameOfFile + ".html");
         FileWriter writer = new FileWriter(file);
-        file.createNewFile();
 
         writer.write("<html><body><h1>Value, Serial Number, Name</h1>");
         //Reading values from arraylist values and writing to file.
         for (Item value : values) {
-            writer.write(value + "<br>");
+            writer.write("<h2>" + value.getValue() + "\t" + value.getSerialNumber() + "\t" + value.getName() + "</h2>" + "<br>");
         }
 
         writer.write("</body></html>");
@@ -539,6 +623,8 @@ public class App {
         writer.close();
 
     }
+
+
 /*
     public static void readFromFileFirst() {
 
