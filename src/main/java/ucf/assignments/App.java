@@ -3,7 +3,6 @@ package ucf.assignments;
  *  UCF COP3330 Summer 2021 Assignment 5 Solution
  *  Copyright 2021 Emanuel Botros
  */
-
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
@@ -11,21 +10,44 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+/**
+ * App is the JAVA GUI application that manipulates the inventory items
+ */
 public class App {
 
-    //These are fields that can be used through the file, not just in one method.
+    /**
+     * Frame object to store GUI components
+     */
     private static JFrame frame;
-    private static JTextField textField;
-    private static JTextField textField_1;
-    private static JTextField textField_2;
-    private static JTextField userTextField;
-    private static JTextField formatField;
-    static JTextArea textArea;
 
-    static ItemUtil itemUtil = new ItemUtil();
+    /**
+     * value text field
+     */
+    private static JTextField valueTextField;
+
+    /**
+     * serial number text field
+     */
+    private static JTextField serialNumberTextField;
+
+    /**
+     * name text field
+     */
+    private static JTextField nameTextField;
+
+    /**
+     * display text area
+     */
+    private static JTextArea displayTextArea;
+
+    /**
+     * the object contains the inventory items
+     */
+    private static ItemUtil itemUtil = new ItemUtil();
 
     /*This is your main method. */
     /**
@@ -63,20 +85,20 @@ public class App {
         frame.getContentPane().setLayout(null);
 
         /**********The three boxes at the top Value, Serial Number, and Name. Starts here*****/
-        textField = new JTextField();
-        textField.setBounds(28, 48, 113, 20);
-        frame.getContentPane().add(textField);
-        textField.setColumns(10);
+        valueTextField = new JTextField();
+        valueTextField.setBounds(28, 48, 113, 20);
+        frame.getContentPane().add(valueTextField);
+        valueTextField.setColumns(10);
 
-        textField_1 = new JTextField();
-        textField_1.setBounds(151, 48, 96, 20);
-        frame.getContentPane().add(textField_1);
-        textField_1.setColumns(10);
+        serialNumberTextField = new JTextField();
+        serialNumberTextField.setBounds(151, 48, 96, 20);
+        frame.getContentPane().add(serialNumberTextField);
+        serialNumberTextField.setColumns(10);
 
-        textField_2 = new JTextField();
-        textField_2.setBounds(273, 48, 123, 20);
-        frame.getContentPane().add(textField_2);
-        textField_2.setColumns(10);
+        nameTextField = new JTextField();
+        nameTextField.setBounds(273, 48, 123, 20);
+        frame.getContentPane().add(nameTextField);
+        nameTextField.setColumns(10);
         /**********The three boxes at the top Value, Serial Number, and Name. Ends here*****/
 
 
@@ -85,8 +107,8 @@ public class App {
         scrollPane.setBounds(28, 89, 368, 138);
         frame.getContentPane().add(scrollPane);
 
-        textArea = new JTextArea();
-        scrollPane.setViewportView(textArea);
+        displayTextArea = new JTextArea();
+        scrollPane.setViewportView(displayTextArea);
         /**********The big box that is a text area, ends here.*****/
 
         /********************These are the labels at the top, starts here***************/
@@ -134,8 +156,32 @@ public class App {
             @Override
             public void mouseClicked(MouseEvent e) {
 
-                //call to method
-                show();
+                JFileChooser f = new JFileChooser();
+                if (f.showOpenDialog(null) == JFileChooser.APPROVE_OPTION){
+
+                    File filePath = f.getSelectedFile();
+
+                    try {
+
+                        if (filePath.getName().endsWith(".html")){
+                            itemUtil = FileUtil.readHTMLFile(filePath);
+                        }else if (filePath.getName().endsWith(".txt")){
+                            itemUtil = FileUtil.readTSVFile(filePath);
+                        }else if (filePath.getName().endsWith(".json")){
+                            itemUtil = FileUtil.readJsonFile(filePath);
+                        }else{
+                            throw new IOException();
+                        }
+
+                        show();
+
+                        JOptionPane.showMessageDialog(frame, "File has been loaded successfully");
+
+                    } catch (IOException ioException) {
+                        JOptionPane.showMessageDialog(frame, "Could not load inventory items from file");
+                    }
+
+                }
 
             }
         });
@@ -143,10 +189,6 @@ public class App {
         frame.getContentPane().add(btnNewButton_2);
 
         /***********************The Export as TSV button **************/
-        JFrame newFrame = new JFrame();
-        userTextField = new JTextField();
-        userTextField.setBounds(28, 48, 113, 20);
-        userTextField.setColumns(10);
 
         JButton btnNewButton_3 = new JButton("Export as TSV");
         btnNewButton_3.addMouseListener(new MouseAdapter() {
@@ -154,43 +196,25 @@ public class App {
             public void mouseClicked(MouseEvent e) {
                 //call to export as tsv file
 
-                newFrame.setVisible(true);
-                newFrame.setBounds(100, 100, 625, 300);
-                newFrame.getContentPane().setLayout(null);
-
-                JLabel lblNewLabel = new JLabel("File name");
-                lblNewLabel.setBounds(28, 23, 79, 14);
-                newFrame.getContentPane().add(lblNewLabel);
-
-                newFrame.getContentPane().add(userTextField);
-
-                System.out.println(userTextField);
-
                 JFileChooser f = new JFileChooser();
-                f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                f.showSaveDialog(null);
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("TSV FILE", "txt", "TXT");
+                f.setFileFilter(filter);
 
-                File filePath = f.getSelectedFile();
+                if (f.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+
+                    File filePath = f.getSelectedFile();
+
+                    try {
+                        //System.out.println("Filename is " + nameOfFile);
+                        FileUtil.saveAsTSVFile(itemUtil, filePath);
+
+                        JOptionPane.showMessageDialog(frame, "File has been saved successfully");
 
 
-                //add button to dialog box
-                JButton btnNewButton_export = new JButton("Export");
-                btnNewButton_export.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        try {
-                            String nameOfFile = userTextField.getText();
-                            //System.out.println("Filename is " + nameOfFile);
-                            FileUtil.saveAsTSVFile(itemUtil,nameOfFile, filePath);
-                        } catch (IOException ioException) {
-                            ioException.printStackTrace();
-                        }
-                        newFrame.dispose();
-                        show();
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
                     }
-                });
-                btnNewButton_export.setBounds(178, 48, 96, 14);
-                newFrame.getContentPane().add(btnNewButton_export);
+                }
             }
         });
         btnNewButton_3.setBounds(425, 149, 145, 23);
@@ -203,43 +227,21 @@ public class App {
             public void mouseClicked(MouseEvent e) {
                 //call to export as tsv file
 
-                newFrame.setVisible(true);
-                newFrame.setBounds(100, 100, 625, 300);
-                newFrame.getContentPane().setLayout(null);
-
-                JLabel lblNewLabel = new JLabel("File name");
-                lblNewLabel.setBounds(28, 23, 79, 14);
-                newFrame.getContentPane().add(lblNewLabel);
-
-                newFrame.getContentPane().add(userTextField);
-
-                System.out.println(userTextField);
-
                 JFileChooser f = new JFileChooser();
-                f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("HTML FILE", "html", "HTML");
+                f.setFileFilter(filter);
                 f.showSaveDialog(null);
 
                 File filePath = f.getSelectedFile();
 
+                try {
+                    //System.out.println("Filename is " + nameOfFile);
+                    FileUtil.saveAsHTMLFile(itemUtil, filePath);
+                    JOptionPane.showMessageDialog(frame, "File has been saved successfully");
 
-                //add button to dialog box
-                JButton btnNewButton_export = new JButton("Export");
-                btnNewButton_export.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        try {
-                            String nameOfFile = userTextField.getText();
-                            //System.out.println("Filename is " + nameOfFile);
-                            FileUtil.saveAsHTMLFile(itemUtil,nameOfFile, filePath);
-                        } catch (IOException ioException) {
-                            ioException.printStackTrace();
-                        }
-                        newFrame.dispose();
-                        show();
-                    }
-                });
-                btnNewButton_export.setBounds(178, 48, 96, 14);
-                newFrame.getContentPane().add(btnNewButton_export);
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
             }
         });
         btnNewButton_4.setBounds(425, 183, 145, 23);
@@ -252,42 +254,20 @@ public class App {
             public void mouseClicked(MouseEvent e) {
                 //call to export as tsv file
 
-                newFrame.setVisible(true);
-                newFrame.setBounds(100, 100, 625, 300);
-                newFrame.getContentPane().setLayout(null);
-
-                JLabel lblNewLabel = new JLabel("File name");
-                lblNewLabel.setBounds(28, 23, 79, 14);
-                newFrame.getContentPane().add(lblNewLabel);
-
-                newFrame.getContentPane().add(userTextField);
-
-                System.out.println(userTextField);
-
                 JFileChooser f = new JFileChooser();
-                f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("JSON FILE", "json", "JSON");
+                f.setFileFilter(filter);
                 f.showSaveDialog(null);
 
                 File filePath = f.getSelectedFile();
 
-                //add button to dialog box
-                JButton btnNewButton_export = new JButton("Export");
-                btnNewButton_export.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        try {
-                            String nameOfFile = userTextField.getText();
-                            //System.out.println("Filename is " + nameOfFile);
-                            FileUtil.saveAsJsonFile(itemUtil,nameOfFile, filePath);
-                        } catch (IOException ioException) {
-                            ioException.printStackTrace();
-                        }
-                        newFrame.dispose();
-                        show();
-                    }
-                });
-                btnNewButton_export.setBounds(178, 48, 96, 14);
-                newFrame.getContentPane().add(btnNewButton_export);
+                try {
+                    //System.out.println("Filename is " + nameOfFile);
+                    FileUtil.saveAsJsonFile(itemUtil, filePath);
+                    JOptionPane.showMessageDialog(frame, "File has been saved successfully");
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
             }
         });
         btnNewButton_json.setBounds(425, 217, 145, 23);
@@ -351,7 +331,7 @@ public class App {
             @Override
             public void mouseClicked(MouseEvent e) {
                 //call to edit item
-                String serialNumber = textField_1.getText();
+                String serialNumber = serialNumberTextField.getText();
                 List<Item> records = itemUtil.searchBySerialNumber(serialNumber);
                 showRecords(records);
             }
@@ -373,7 +353,7 @@ public class App {
     }
 
     public static void searchByName() {
-        String name = textField_2.getText(); //for the second box
+        String name = nameTextField.getText(); //for the second box
 
         List<Item> records = new ArrayList<>();
         records = itemUtil.searchByName(name);
@@ -382,10 +362,10 @@ public class App {
 
     //The edit method
     public static void edit() {
-        String svalue = textField.getText();  //for the first box
-        String serialNumber = textField_1.getText(); //for the second box
-        String name = textField_2.getText(); //for the third box
-        
+        String svalue = valueTextField.getText();  //for the first box
+        String serialNumber = serialNumberTextField.getText(); //for the second box
+        String name = nameTextField.getText(); //for the third box
+
         //value in dollars
         int value = 0;
         try{
@@ -418,32 +398,32 @@ public class App {
         }
 
         //for the input boxes at top we want to clear them once we have added to the text area
-        textField.setText("");
-        textField_1.setText("");
-        textField_2.setText("");
+        valueTextField.setText("");
+        serialNumberTextField.setText("");
+        nameTextField.setText("");
     }
 
     public static void showRecords(List<Item> recordsToShow) {
-        textArea.setText("");
+        displayTextArea.setText("");
         for(Item item: recordsToShow) {
-            textArea.append(item + "\n");
+            displayTextArea.append(item + "\n");
         }
-        textArea.setCaretPosition(0);
+        displayTextArea.setCaretPosition(0);
     }
 
     //The show method
     public static void show() {
 
         //clear text area first
-        textArea.setText("");
+        displayTextArea.setText("");
 
         //read values in arraylist and put them in textArea
         for(Item value : itemUtil.getValues()) {
-            textArea.append(value + "\n");
+            displayTextArea.append(value + "\n");
         }
 
         //this is for the cursor, we want to set it back to the top position
-        textArea.setCaretPosition(0);
+        displayTextArea.setCaretPosition(0);
     }
 
     public static void delete() {
@@ -461,9 +441,9 @@ public class App {
     }
 
     public static void add() {
-        String svalue = textField.getText(); //+ "\t";  //for the first box
-        String serialNumber = textField_1.getText(); //+ "\t"; //for the second box
-        String name = textField_2.getText(); //+ "\t"; //for the third box
+        String svalue = valueTextField.getText(); //+ "\t";  //for the first box
+        String serialNumber = serialNumberTextField.getText(); //+ "\t"; //for the second box
+        String name = nameTextField.getText(); //+ "\t"; //for the third box
 
         //value in dollars
         int value = 0;
@@ -473,8 +453,14 @@ public class App {
             JOptionPane.showMessageDialog(frame, "Invalid value");
             return;
         }
-        
-        Item item = new Item(value, serialNumber, name);
+
+        Item item = null;
+        try {
+            item = new Item(value, serialNumber, name);
+        }catch (Exception e){
+            JOptionPane.showMessageDialog(frame, e.getMessage());
+            return;
+        }
         //we will create one big string, we will tweak this one so don't worry
         //String d = a + b + c;
         //System.out.println(" " + d); //testing string
@@ -498,9 +484,9 @@ public class App {
         }
 
         //for the input boxes at top we want to clear them once we have added to the text area
-        textField.setText("");
-        textField_1.setText("");
-        textField_2.setText("");
+        valueTextField.setText("");
+        serialNumberTextField.setText("");
+        nameTextField.setText("");
     }
 
 }
