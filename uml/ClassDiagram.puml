@@ -1,0 +1,58 @@
+@startuml
+class Item{
+   - int value
+   - String serialNumber
+   - String name
+   + String getValue()
+   + String getName()
+   + String getSerialNumber()
+   + void setValue(int value)
+   + void setSerialNumber(String serialNumber)
+   + void setName(String name)
+   + String toString()
+}
+
+class ItemUtil{
+   - List<Item> values
+   + List<Item> getValues()
+   + List<Item> searchByName(String name)
+   + List<Item> searchBySerialNumber(String serialNumber)
+   + void sortByValue()
+   + void sortByName()
+   + Item findRecord(String serialNumber)
+   + void deleteRecord(String serialNumber)
+   + boolean removeFirstRecord()
+   + boolean removeRecord(Item item)
+   + void addRecord(Item item) throws IllegalArgumentException
+   + boolean testSerialNumberPresence(String serialNumber)
+}
+
+class FileUtil{
+   + {static} void saveAsJsonFile(ItemUtil itemUtil, File filePath)
+   + {static}ItemUtil readJsonFile(File filePath) throws IOException
+   + {static}void save(ItemUtil itemUtil) throws IOException
+   + {static}void saveAsTSVFile(ItemUtil itemUtil, File filePath) throws IOException
+   + {static}ItemUtil readTSVFile(File filePath) throws IOException
+   + {static}void saveAsHTMLFile(ItemUtil itemUtil, File filePath) throws IOException
+   + {static}ItemUtil readHTMLFile(File filePath) throws IOException
+}
+class App{
+  - {static} JFrame frame
+  - {static} JTextField valueTextField
+  - {static} JTextField serialNumberTextField
+  - {static} JTextField nameTextField
+  - {static} JTextArea displayTextArea
+  - {static} ItemUtil itemUtil
+  + {static} void main(String[] args)
+  - void initialize()
+  + {static}void searchByName()
+  + {static}void edit()
+  + {static} void showRecords(List<Item> recordsToShow)
+  + {static}void show()
+  + {static} void delete()
+  + {static}void add()
+}
+ItemUtil "1" *-- "*" Item
+App --> FileUtil
+App "1" *-- "1" ItemUtil
+@enduml
