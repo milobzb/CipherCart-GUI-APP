@@ -1,20 +1,13 @@
 package ucf.assignments;
 /*
  *  UCF COP3330 Summer 2021 Assignment 5 Solution
- *  Copyright 2021 first_name last_name
+ *  Copyright 2021 Emanuel Botros
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.awt.EventQueue;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.*;
@@ -32,15 +25,8 @@ public class App {
     private static JTextField formatField;
     static JTextArea textArea;
 
-    /*you want to use an arraylist. These are alway good to use because you can modify it.
-     * Here we will add and remove values.*/
-    //static List<Item> values = new ArrayList<>();
+    static ItemUtil itemUtil = new ItemUtil();
 
-    /*
-    public List<Item> getValues() {
-        return this.values;
-    }
-    */
     /*This is your main method. */
     /**
      * Launch the application.
@@ -195,7 +181,7 @@ public class App {
                         try {
                             String nameOfFile = userTextField.getText();
                             //System.out.println("Filename is " + nameOfFile);
-                            FileUtil.saveAsFormattedFile(nameOfFile, filePath, "tsv");
+                            FileUtil.saveAsTSVFile(itemUtil,nameOfFile, filePath);
                         } catch (IOException ioException) {
                             ioException.printStackTrace();
                         }
@@ -244,7 +230,7 @@ public class App {
                         try {
                             String nameOfFile = userTextField.getText();
                             //System.out.println("Filename is " + nameOfFile);
-                            FileUtil.saveAsHTMLFile(nameOfFile, filePath);
+                            FileUtil.saveAsHTMLFile(itemUtil,nameOfFile, filePath);
                         } catch (IOException ioException) {
                             ioException.printStackTrace();
                         }
@@ -292,7 +278,7 @@ public class App {
                         try {
                             String nameOfFile = userTextField.getText();
                             //System.out.println("Filename is " + nameOfFile);
-                            FileUtil.saveAsJsonFile(nameOfFile, filePath);
+                            FileUtil.saveAsJsonFile(itemUtil,nameOfFile, filePath);
                         } catch (IOException ioException) {
                             ioException.printStackTrace();
                         }
@@ -326,7 +312,7 @@ public class App {
             @Override
             public void mouseClicked(MouseEvent e) {
                 //call to edit item
-                ItemUtil.sortByValue();
+                itemUtil.sortByValue();
                 show();
             }
         });
@@ -339,7 +325,7 @@ public class App {
             @Override
             public void mouseClicked(MouseEvent e) {
                 //call to edit item
-                ItemUtil.sortBySerialNumber();
+                itemUtil.sortBySerialNumber();
                 show();
             }
         });
@@ -352,7 +338,7 @@ public class App {
             @Override
             public void mouseClicked(MouseEvent e) {
                 //call to edit item
-                ItemUtil.sortByName();
+                itemUtil.sortByName();
                 show();
             }
         });
@@ -366,7 +352,7 @@ public class App {
             public void mouseClicked(MouseEvent e) {
                 //call to edit item
                 String serialNumber = textField_1.getText();
-                List<Item> records = ItemUtil.searchBySerialNumber(serialNumber);
+                List<Item> records = itemUtil.searchBySerialNumber(serialNumber);
                 showRecords(records);
             }
         });
@@ -390,23 +376,32 @@ public class App {
         String name = textField_2.getText(); //for the second box
 
         List<Item> records = new ArrayList<>();
-        records = ItemUtil.findRecordByName(name);
+        records = itemUtil.searchByName(name);
         showRecords(records);
     }
 
     //The edit method
     public static void edit() {
-        String value = textField.getText();  //for the first box
+        String svalue = textField.getText();  //for the first box
         String serialNumber = textField_1.getText(); //for the second box
         String name = textField_2.getText(); //for the third box
+        
+        //value in dollars
+        int value = 0;
+        try{
+            value = Integer.parseInt(svalue);
+        }catch (Exception e){
+            JOptionPane.showMessageDialog(frame, "Invalid value");
+            return;
+        }
 
         //we will create one big string, we will tweak this one so don't worry
         Item item = new Item(value, serialNumber, name);
 
-        Item olderRecord = ItemUtil.findRecord(item.getSerialNumber());
+        Item olderRecord = itemUtil.findRecord(item.getSerialNumber());
         if(olderRecord!=null) {
-            ItemUtil.deleteRecord(olderRecord.getSerialNumber()); //serial number passed to function
-            ItemUtil.values.add(0, item);
+            itemUtil.deleteRecord(olderRecord.getSerialNumber()); //serial number passed to function
+            itemUtil.addRecord(item);
             System.out.println("Row can be added. Unique row");
         }
         else {
@@ -416,7 +411,7 @@ public class App {
         show();
         try {
             //we will want to save values to regular text file either way
-            FileUtil.save();
+            FileUtil.save(itemUtil);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -443,7 +438,7 @@ public class App {
         textArea.setText("");
 
         //read values in arraylist and put them in textArea
-        for(Item value : ItemUtil.values) {
+        for(Item value : itemUtil.getValues()) {
             textArea.append(value + "\n");
         }
 
@@ -454,11 +449,11 @@ public class App {
     public static void delete() {
 
         //this removes the first value of the arraylist
-        ItemUtil.values.remove(0);
+        itemUtil.removeFirstRecord();
         //then we call show to add the values again to the text area.
         show();
         try {
-            FileUtil.save();
+            FileUtil.save(itemUtil);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -466,19 +461,28 @@ public class App {
     }
 
     public static void add() {
-        String value = textField.getText(); //+ "\t";  //for the first box
+        String svalue = textField.getText(); //+ "\t";  //for the first box
         String serialNumber = textField_1.getText(); //+ "\t"; //for the second box
         String name = textField_2.getText(); //+ "\t"; //for the third box
 
+        //value in dollars
+        int value = 0;
+        try{
+            value = Integer.parseInt(svalue);
+        }catch (Exception e){
+            JOptionPane.showMessageDialog(frame, "Invalid value");
+            return;
+        }
+        
         Item item = new Item(value, serialNumber, name);
         //we will create one big string, we will tweak this one so don't worry
         //String d = a + b + c;
         //System.out.println(" " + d); //testing string
-        boolean alreadyExists = ItemUtil.testSerialNumberPresence(item.getSerialNumber());
+        boolean alreadyExists = itemUtil.testSerialNumberPresence(item.getSerialNumber());
         //adding values to the arraylist
         if(!alreadyExists) {
             System.out.println("Row can be added. Unique row");
-           ItemUtil. values.add(0, item);
+            itemUtil.addRecord(item);
         }
         else {
             System.out.println("Serial number already exists");
@@ -487,7 +491,7 @@ public class App {
         show();
         try {
             //we will want to save values to regular text file either way
-            FileUtil.save();
+            FileUtil.save(itemUtil);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
