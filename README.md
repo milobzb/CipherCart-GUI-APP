@@ -1,4 +1,4 @@
-# 🛍 Java Shopping Cart GUI App  
+# 🛍 Java CipherCart GUI App  
 
 A **user-friendly Shopping Cart application** built in **Java** with a graphical user interface (GUI). Users can add items to the cart, update quantities, view the total price, and proceed to checkout.  
 
